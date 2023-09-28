@@ -4,28 +4,28 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public final class TableSizeReader {
+    private static final String QUERY_TABLE_SIZE_MESSAGE = "Enter table size: ";
+    private static final String ERROR_MESSAGE = "Parse error: ";
+
     private TableSizeReader() {
     }
 
     public static int readInputTableSize(int minBound, int maxBound) {
-        Scanner sc = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
         int tableSize;
-        final String QUERY_TABLE_SIZE_MESSAGE = "Enter table size: ";
-        final String ERROR_MESSAGE = "Parse error: ";
 
         while (true) {
             System.out.println(QUERY_TABLE_SIZE_MESSAGE);
             try {
-                tableSize = sc.nextInt();
+                tableSize = scanner.nextInt();
                 if (tableSize < minBound || tableSize > maxBound) {
                     continue;
                 }
             } catch (InputMismatchException exception) {
-                sc.next();
+                scanner.next();
                 System.err.println(ERROR_MESSAGE + exception.getMessage());
                 continue;
             }
-            sc.close();
             return tableSize;
         }
 
