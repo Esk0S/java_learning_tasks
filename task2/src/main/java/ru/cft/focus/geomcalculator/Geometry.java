@@ -13,7 +13,7 @@ public class Geometry {
         System.arraycopy(args, 0, this.args, 0, args.length);
         CliHandler cliHandler = new CliHandler(this.args);
         String filePath = cliHandler.getInputPath();
-        boolean fileOutput = cliHandler.isFileOutput();
+//        boolean fileOutput = cliHandler.isFileOutput();
         ShapeDataHandler shapeDataHandler = new ShapeDataHandler(filePath);
         figureType = shapeDataHandler.getFigureType();
         shapeParams = shapeDataHandler.getShapeParams();

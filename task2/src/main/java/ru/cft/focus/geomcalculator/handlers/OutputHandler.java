@@ -27,21 +27,24 @@ public class OutputHandler {
         switch (figureType) {
             case CIRCLE -> {
                 try {
-                    logger.info("\n{}", outputCircle(new Circle(shapeParams)));
+                    String info = outputCircle(new Circle(shapeParams));
+                    logger.info("\n{}", info);
                 } catch (NumberOfParametersException ex) {
                     logger.error(ex.getMessage());
                 }
             }
             case RECTANGLE -> {
                 try {
-                    logger.info("\n{}", outputRectangle(new Rectangle(shapeParams)));
+                    String info = outputRectangle(new Rectangle(shapeParams));
+                    logger.info("\n{}", info);
                 } catch (NumberOfParametersException ex) {
                     logger.error(ex.getMessage());
                 }
             }
             case TRIANGLE -> {
                 try {
-                    logger.info("\n{}", outputTriangle(new Triangle(shapeParams)));
+                    String info = outputTriangle(new Triangle(shapeParams));
+                    logger.info("\n{}", info);
                 } catch (NumberOfParametersException | TriangleDoesNotExistException ex) {
                     logger.error(ex.getMessage());
                 }
