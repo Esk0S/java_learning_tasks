@@ -4,18 +4,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.cft.focus.geomcalculator.exceptions.NumberOfParametersException;
 import ru.cft.focus.geomcalculator.exceptions.TriangleDoesNotExistException;
-import ru.cft.focus.geomcalculator.shapes.Circle;
-import ru.cft.focus.geomcalculator.shapes.Rectangle;
-import ru.cft.focus.geomcalculator.shapes.Shape;
-import ru.cft.focus.geomcalculator.shapes.Triangle;
+import ru.cft.focus.geomcalculator.shapes.*;
 
 public class OutputHandler {
-    private static final String SHAPE_SWITCH_DEFAULT = "Unknown shape type: ";
-    private static final String CIRCLE = "CIRCLE";
-    private static final String RECTANGLE = "RECTANGLE";
-    private static final String TRIANGLE = "TRIANGLE";
     private static final String NUM_OF_PARAMS_EXCEPTION = "Invalid number of parameters: ";
-    private static final String TRIANGLE_DOES_NOT_EXIST_EXCEPTION = "";
+    private static final String UNKNOWN_SHAPE_TYPE_EXCEPTION = "Unknown shape type: ";
     private static final Logger logger = LogManager.getLogger(OutputHandler.class);
     private final String figureType;
     private final double[] shapeParams;
@@ -26,34 +19,36 @@ public class OutputHandler {
     }
 
     public void outputShape() {
-        switch (figureType) {
+        Shape shape;
+
+        try {
+            shape = new ShapeFactory().createShape(figureType, shapeParams);
+        } catch (NumberOfParametersException ex) {
+            logger.error(() -> NUM_OF_PARAMS_EXCEPTION + ex.getMessage());
+            return;
+        } catch (TriangleDoesNotExistException ex) {
+            logger.error(ex.getMessage());
+            return;
+        } catch (IllegalArgumentException ex) {
+            logger.error(() -> UNKNOWN_SHAPE_TYPE_EXCEPTION + "figure: " + figureType);
+            return;
+        }
+
+        ShapeNames shapeName = ShapeNames.valueOf(figureType);
+
+        switch (shapeName) {
             case CIRCLE -> {
-                try {
-                    String info = outputCircle(new Circle(shapeParams));
-                    logger.info("\n{}", info);
-                } catch (NumberOfParametersException ex) {
-                    logger.error(() -> NUM_OF_PARAMS_EXCEPTION + ex.getMessage());
-                }
+                String info = outputCircle((Circle) shape);
+                logger.info("\n{}", info);
             }
             case RECTANGLE -> {
-                try {
-                    String info = outputRectangle(new Rectangle(shapeParams));
+                String info = outputRectangle((Rectangle) shape);
                     logger.info("\n{}", info);
-                } catch (NumberOfParametersException ex) {
-                    logger.error(() -> NUM_OF_PARAMS_EXCEPTION + ex.getMessage());
-                }
             }
             case TRIANGLE -> {
-                try {
-                    String info = outputTriangle(new Triangle(shapeParams));
+                String info = outputTriangle((Triangle) shape);
                     logger.info("\n{}", info);
-                } catch (NumberOfParametersException ex) {
-                    logger.error(() -> NUM_OF_PARAMS_EXCEPTION + ex.getMessage());
-                } catch (TriangleDoesNotExistException ex) {
-                    logger.error(() -> TRIANGLE_DOES_NOT_EXIST_EXCEPTION + ex.getMessage());
-                }
             }
-            default -> logger.error(() -> SHAPE_SWITCH_DEFAULT + "figure: " + figureType);
         }
     }
 

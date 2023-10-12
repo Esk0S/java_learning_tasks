@@ -15,7 +15,6 @@ public class Main {
 
         OutputHandler outputHandler = new OutputHandler(figureType, params);
         outputHandler.outputShape();
-
     }
 
 }
