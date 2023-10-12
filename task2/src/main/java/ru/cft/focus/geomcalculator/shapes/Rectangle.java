@@ -9,16 +9,17 @@ public class Rectangle extends Shape {
     private final double sideA;
     private final double sideB;
     private static final String NAME_OF_SHAPE = "Rectangle";
-    private static final int SIDE_A_PARAM_NAME = 0;
-    private static final int SIDE_B_PARAM_NAME = 1;
-    public static final String NUMS_OF_PARAMS_EXCEPTION = "The number of arguments must be two";
+
+    public static final String NUM_OF_PARAMS_EXCEPTION = "The number of arguments must be two";
 
     public Rectangle(double[] params) throws NumberOfParametersException {
         if (params.length != 2) {
-            throw new NumberOfParametersException(NUMS_OF_PARAMS_EXCEPTION);
+            throw new NumberOfParametersException(NUM_OF_PARAMS_EXCEPTION);
         } else {
-            sideA = params[SIDE_A_PARAM_NAME];
-            sideB = params[SIDE_B_PARAM_NAME];
+            int sideAParamNumber = 0;
+            int sideBParamNumber = 1;
+            sideA = params[sideAParamNumber];
+            sideB = params[sideBParamNumber];
             name = NAME_OF_SHAPE;
 
             calculatePerimeter();

@@ -1,8 +1,9 @@
-package ru.cft.focus;
+package ru.cft.focus.geomcalculator.handlers;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import ru.cft.focus.geomcalculator.handlers.CliHandler;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestCliHandler {
     @Test
@@ -11,7 +12,7 @@ class TestCliHandler {
         CliHandler cliHandler = new CliHandler(args);
         String expected = "task2data/circle.txt";
         String actual = cliHandler.getInputPath();
-        Assertions.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -19,6 +20,6 @@ class TestCliHandler {
         String[] args = new String[]{"-f", "-i", "task2data/circle.txt"};
         CliHandler cliHandler = new CliHandler(args);
         boolean actual = cliHandler.isFileOutput();
-        Assertions.assertTrue(actual);
+        assertTrue(actual);
     }
 }

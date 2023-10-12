@@ -7,25 +7,28 @@ public class Triangle extends Shape {
     private double alphaAngle;
     private double betaAngle;
     private double gammaAngle;
-    private final double sideLengthA;
-    private final double sideLengthB;
-    private final double sideLengthC;
-    private static final int SIDE_LENGTH_A = 0;
-    private static final int SIDE_LENGTH_B = 1;
-    private static final int SIDE_LENGTH_C = 2;
+    private final double sideA;
+    private final double sideB;
+    private final double sideC;
+
     private static final String NAME_OF_SHAPE = "Triangle";
-    private static final String TRIANGLE_DOES_NOT_EXIST_EXCEPTION = "Triangle with these sides does not exist";
-    public static final String NUMS_OF_PARAMS_EXCEPTION = "The number of arguments must be three";
+    public static final String NUM_OF_PARAMS_EXCEPTION = "The number of arguments must be three";
 
     public Triangle(double[] params) throws NumberOfParametersException, TriangleDoesNotExistException {
+        int sideAParamNumber = 0;
+        int sideBParamNumber = 1;
+        int sideCParamNumber = 2;
         if (params.length != 3) {
-            throw new NumberOfParametersException(NUMS_OF_PARAMS_EXCEPTION);
-        } else if (params[SIDE_LENGTH_A] + params[SIDE_LENGTH_B] <= params[SIDE_LENGTH_C]) {
-            throw new TriangleDoesNotExistException(TRIANGLE_DOES_NOT_EXIST_EXCEPTION);
+            throw new NumberOfParametersException(NUM_OF_PARAMS_EXCEPTION);
+        } else if (params[sideAParamNumber] + params[sideBParamNumber] <= params[sideCParamNumber]) {
+            String triangleDoesNotExistException =
+                    "Triangle with sides " + params[sideAParamNumber] + ", " + params[sideBParamNumber] +
+                            ", " + params[sideCParamNumber] + " does not exist";
+            throw new TriangleDoesNotExistException(triangleDoesNotExistException);
         } else {
-            sideLengthA = params[SIDE_LENGTH_A];
-            sideLengthB = params[SIDE_LENGTH_B];
-            sideLengthC = params[SIDE_LENGTH_C];
+            this.sideA = params[sideAParamNumber];
+            this.sideB = params[sideBParamNumber];
+            this.sideC = params[sideCParamNumber];
             name = NAME_OF_SHAPE;
 
             calculatePerimeter();
@@ -35,21 +38,21 @@ public class Triangle extends Shape {
     }
 
     private void calculateAngles() {
-        alphaAngle = Math.acos(((sideLengthB * sideLengthB) + (sideLengthC * sideLengthC) - (sideLengthA * sideLengthA))
-                / (2 * sideLengthB * sideLengthC));
-        betaAngle = Math.acos(((sideLengthA * sideLengthA) + (sideLengthC * sideLengthC) - (sideLengthB * sideLengthB))
-                / (2 * sideLengthA * sideLengthC));
-        gammaAngle = Math.acos(((sideLengthA * sideLengthA) + (sideLengthB * sideLengthB) - (sideLengthC * sideLengthC))
-                / (2 * sideLengthA * sideLengthB));
+        alphaAngle = Math.acos(((sideB * sideB) + (sideC * sideC) - (sideA * sideA))
+                / (2 * sideB * sideC));
+        betaAngle = Math.acos(((sideA * sideA) + (sideC * sideC) - (sideB * sideB))
+                / (2 * sideA * sideC));
+        gammaAngle = Math.acos(((sideA * sideA) + (sideB * sideB) - (sideC * sideC))
+                / (2 * sideA * sideB));
     }
 
     private void calculatePerimeter() {
-        perimeter = sideLengthA + sideLengthB + sideLengthC;
+        perimeter = sideA + sideB + sideC;
     }
 
     private void calculateArea() {
         double p = perimeter / 2;
-        area = Math.sqrt(p * (p - sideLengthA) * (p - sideLengthB) * (p - sideLengthC));
+        area = Math.sqrt(p * (p - sideA) * (p - sideB) * (p - sideC));
     }
 
     public double getAlphaAngle() {

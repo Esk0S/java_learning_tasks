@@ -8,12 +8,12 @@ import java.io.FileReader;
 import java.util.Arrays;
 
 public class ShapeDataHandler {
-    private String figureType;
-    private double[] shapeParams;
     private static final int DATA_STRINGS_COUNT = 2;
     private static final int SHAPE_TYPE_NUMBER = 0;
     private static final int PARAMS_NUMBER = 1;
     private static final Logger logger = LogManager.getLogger(ShapeDataHandler.class);
+    private String figureType;
+    private double[] shapeParams;
 
     public ShapeDataHandler(String filePath) {
         String[] dataFromFile = openFile(filePath);
@@ -44,7 +44,6 @@ public class ShapeDataHandler {
         String paramsStr = data[PARAMS_NUMBER].trim();
         shapeParams = Arrays.stream(paramsStr.split(" "))
                 .mapToDouble(Double::parseDouble).toArray();
-
     }
 
     public String getFigureType() {

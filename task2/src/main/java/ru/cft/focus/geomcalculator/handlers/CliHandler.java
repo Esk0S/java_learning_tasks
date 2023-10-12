@@ -8,16 +8,15 @@ public class CliHandler {
     private static final String CONSOLE_OPT_DESCRIPTION = "Output to console";
     private static final String FILE_OPT_DESCRIPTION = "Output to file";
     private static final String INPUT_OPT_DESCRIPTION = "Path to input data";
-    public static final String HELP_OPT_DESCRIPTION = "Display available options";
+    private static final String HELP_OPT_DESCRIPTION = "Display available options";
     private static final String INPUT_OPT = "i";
     private static final String FILE_OPT = "f";
     private static final String CONSOLE_OPT = "c";
-    public static final String HELP_OPT = "h";
-    public static final String HELP_OPT_FULL = "help";
+    private static final String HELP_OPT = "h";
+    private static final String HELP_OPT_FULL = "help";
     private static final String APPLICATION_NAME = "geom-calculator";
-    private final Options options = new Options();
     private static final Logger logger = LogManager.getLogger(CliHandler.class);
-
+    private final Options options = new Options();
     private String inputPath = "";
     private boolean fileOutput;
 
