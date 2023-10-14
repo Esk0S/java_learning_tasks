@@ -21,7 +21,6 @@ public class ShapeDataHandler {
     }
 
     private String[] openFile(String filePath) {
-
         File file = new File(filePath);
         String[] dataStrings = new String[DATA_STRINGS_COUNT];
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {

@@ -69,6 +69,22 @@ class TestTriangle {
     }
 
     @Test
+    void printShape() throws NumberOfParametersException, TriangleDoesNotExistException {
+        Triangle triangle = new Triangle(new double[]{2, 7, 8});
+
+        String expected = """
+                Figure type: Triangle
+                Area: 6.44 sqr mm
+                Perimeter: 17.00 mm
+                Alpha angle: 0.23 rad
+                Beta angle: 0.94 rad
+                Gamma angle: 1.97 rad
+                """;
+        String actual = triangle.printShape();
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void testInvalidNumberOfParameters() {
         double[] params = {5.0, 3.0, 5.0, 9.0};
         assertThrows(NumberOfParametersException.class, () -> new Triangle(params));

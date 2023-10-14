@@ -16,4 +16,15 @@ public abstract class Shape {
     public String getName() {
         return name;
     }
+
+    protected String printCommon() {
+        return String.format("""
+                        Figure type: %s
+                        Area: %.2f sqr mm
+                        Perimeter: %.2f mm
+                        """,
+                getName(), getArea(), getPerimeter());
+    }
+
+    public abstract String printShape();
 }

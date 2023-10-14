@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import ru.cft.focus.geomcalculator.exceptions.TriangleDoesNotExistException;
-import ru.cft.focus.geomcalculator.handlers.ShapeFactory;
 
 class TestShapeFactory {
     @Test
@@ -47,18 +46,14 @@ class TestShapeFactory {
     void createInvalidShape() {
         ShapeFactory factory = new ShapeFactory();
         double[] params = {1.0, 2.0, 3.0}; // некорректные параметры
-        assertThrows(IllegalArgumentException.class, () -> {
-            factory.createShape("INVALID_SHAPE", params);
-        });
+        assertThrows(IllegalArgumentException.class, () -> factory.createShape("INVALID_SHAPE", params));
     }
 
     @Test
     void createInvalidTriangle() {
         ShapeFactory factory = new ShapeFactory();
         double[] params = {1.0, 2.0, 10.0}; // некорректные стороны для треугольника
-        assertThrows(TriangleDoesNotExistException.class, () -> {
-            factory.createShape("TRIANGLE", params);
-        });
+        assertThrows(TriangleDoesNotExistException.class, () -> factory.createShape("TRIANGLE", params));
     }
 }
 

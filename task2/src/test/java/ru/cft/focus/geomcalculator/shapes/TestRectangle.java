@@ -64,6 +64,22 @@ class TestRectangle {
     }
 
     @Test
+    void printShape() throws NumberOfParametersException {
+        Rectangle rectangle = new Rectangle(new double[]{2, 5});
+
+        String expected = """
+                Figure type: Rectangle
+                Area: 10.00 sqr mm
+                Perimeter: 14.00 mm
+                Diagonal length: 5.39 mm
+                Length: 5.00 mm
+                Width: 2.00 mm
+                """;
+        String actual = rectangle.printShape();
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void testInvalidNumberOfParameters() {
         double[] params = {5.0};
         assertThrows(NumberOfParametersException.class, () -> new Rectangle(params));

@@ -52,6 +52,21 @@ class TestCircle {
     }
 
     @Test
+    void printShape() throws NumberOfParametersException {
+        Circle circle = new Circle(new double[]{3});
+
+        String expected = """
+                Figure type: Circle
+                Area: 28.27 sqr mm
+                Perimeter: 18.85 mm
+                Radius: 3.00 mm
+                Diameter: 6.00 mm
+                """;
+        String actual = circle.printShape();
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void testInvalidNumberOfParameters() {
         double[] params = {5.0, 3.0};
         assertThrows(NumberOfParametersException.class, () -> new Circle(params));

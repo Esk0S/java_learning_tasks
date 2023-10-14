@@ -66,4 +66,15 @@ public class Triangle extends Shape {
     public double getGammaAngle() {
         return gammaAngle;
     }
+
+    @Override
+    public String printShape() {
+        return printCommon() +
+                String.format("""
+                                Alpha angle: %.2f rad
+                                Beta angle: %.2f rad
+                                Gamma angle: %.2f rad
+                                """,
+                        getAlphaAngle(), getBetaAngle(), getGammaAngle());
+    }
 }

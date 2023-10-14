@@ -61,4 +61,15 @@ public class Rectangle extends Shape {
     public double getWidth() {
         return width;
     }
+
+    @Override
+    public String printShape() {
+        return printCommon() +
+                String.format("""
+                                Diagonal length: %.2f mm
+                                Length: %.2f mm
+                                Width: %.2f mm
+                                """,
+                        getDiagonal(), getLength(), getWidth());
+    }
 }
