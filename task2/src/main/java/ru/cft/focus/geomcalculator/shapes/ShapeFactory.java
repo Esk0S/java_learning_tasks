@@ -1,8 +1,7 @@
-package ru.cft.focus.geomcalculator.handlers;
+package ru.cft.focus.geomcalculator.shapes;
 
 import ru.cft.focus.geomcalculator.exceptions.NumberOfParametersException;
 import ru.cft.focus.geomcalculator.exceptions.TriangleDoesNotExistException;
-import ru.cft.focus.geomcalculator.shapes.*;
 
 public class ShapeFactory {
     public Shape createShape(String figureType, double[] params) throws
