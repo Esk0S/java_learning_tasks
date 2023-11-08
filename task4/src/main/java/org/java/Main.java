@@ -10,7 +10,7 @@ public class Main {
     private static final int NUM_OF_ELEMENTS = 10_000_000;
     private static final int ITEMS_PER_THREAD = NUM_OF_ELEMENTS / NUM_THREADS;
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         AtomicReference<Double> counter = new AtomicReference<>(0.0);
 
         Task[] task = new Task[NUM_THREADS];
@@ -25,7 +25,12 @@ public class Main {
         }
 
         for (int threadID = 0; threadID < NUM_THREADS; threadID++) {
-            task[threadID].join();
+            try {
+                task[threadID].join();
+            } catch (InterruptedException e) {
+                log.error(e.getMessage());
+                Thread.currentThread().interrupt();
+            }
             int i = threadID;
             counter.updateAndGet(result -> result + task[i].getResult());
         }
