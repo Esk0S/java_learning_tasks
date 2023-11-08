@@ -1,0 +1,21 @@
+package ru.cft.focus.miner.model;
+
+import lombok.Getter;
+
+@Getter
+public class WinEvent {
+    private final int bombs;
+    private final int rows;
+    private final int cols;
+    private final int time;
+    private final GameType gameType;
+
+    public WinEvent(int bombs, int rows, int cols, int time, GameType gameType) {
+        this.bombs = bombs;
+        this.rows = rows;
+        this.cols = cols;
+        this.time = time;
+        this.gameType = gameType;
+    }
+
+}
