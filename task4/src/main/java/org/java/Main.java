@@ -6,25 +6,25 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
 public class Main {
-    private static final int NUM_THREADS = 8;
-    private static final int NUM_OF_ELEMENTS = 10_000_000;
-    private static final int ITEMS_PER_THREAD = NUM_OF_ELEMENTS / NUM_THREADS;
-
     public static void main(String[] args) {
-        AtomicReference<Double> counter = new AtomicReference<>(0.0);
+        CliHandler cliHandler = new CliHandler(args);
+        int numElements = cliHandler.getNumElements();
+        int numThreads = Runtime.getRuntime().availableProcessors() / 2;
+        int itemsPerThread = numElements / numThreads;
 
-        Task[] task = new Task[NUM_THREADS];
-        log.info(() -> "Num of threads: " + NUM_THREADS + ", items per thread: " + ITEMS_PER_THREAD);
-        for (int threadID = 0; threadID < NUM_THREADS; threadID++) {
+        Task[] task = new Task[numThreads];
+        log.info(() -> "Num of elements: " + numElements + ", Num of threads: " + numThreads + ", items per thread: " + itemsPerThread);
+        for (int threadID = 0; threadID < numThreads; threadID++) {
 
-            int lowerBound = threadID * ITEMS_PER_THREAD + 1;
-            int upperBound = (threadID == NUM_THREADS - 1) ? (NUM_OF_ELEMENTS) : (lowerBound + ITEMS_PER_THREAD - 1);
+            int lowerBound = threadID * itemsPerThread + 1;
+            int upperBound = (threadID == numThreads - 1) ? (numElements) : (lowerBound + itemsPerThread - 1);
 
             task[threadID] = new Task(lowerBound, upperBound);
             task[threadID].start();
         }
 
-        for (int threadID = 0; threadID < NUM_THREADS; threadID++) {
+        AtomicReference<Double> counter = new AtomicReference<>(0.0);
+        for (int threadID = 0; threadID < numThreads; threadID++) {
             try {
                 task[threadID].join();
             } catch (InterruptedException e) {
