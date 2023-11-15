@@ -5,10 +5,6 @@ import ru.cft.focus.miner.view.MainWindow;
 import ru.cft.focus.miner.view.SettingsWindow;
 import ru.cft.focus.miner.view.View;
 
-import java.util.List;
-
-import static ru.cft.focus.miner.data.GameValues.*;
-
 public class GameController {
     private final GameModel gameModel;
     private final MainWindow mainWindow;
@@ -31,18 +27,12 @@ public class GameController {
 
         mainWindow.setCellListener((x, y, buttonType) -> {
             switch (buttonType) {
-                case LEFT_BUTTON -> {
-                    var cells = gameModel.getOpenedCells(x, y);
-                    openCells(bombs, rows, cols, cells);
-                }
+                case LEFT_BUTTON -> gameModel.openCells(x, y, false);
                 case RIGHT_BUTTON -> setMark(x, y);
-                case MIDDLE_BUTTON -> {
-                    var cells = gameModel.getCellsAround(x, y);
-                    openCells(bombs, rows, cols, cells);
-                }
+                case MIDDLE_BUTTON -> gameModel.openCells(x, y, true);
             }
         });
-        gameModel.notifyNewGameListeners(gameModel.startNewGame(bombs, rows, cols, gameType));
+        gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameType));
 
         setGameType();
     }
@@ -51,23 +41,6 @@ public class GameController {
         CellEvent cell = gameModel.getCellForMark(x, y);
         if (cell != null) {
             gameModel.notifyCellListeners(cell);
-        }
-    }
-
-    private void openCells(int bombs, int rows, int cols, List<CellEvent> cells) {
-        boolean bomb = false;
-        for (var cell : cells) {
-            if (cell.getState() == CellState.BOMB) {
-                bomb = true;
-            }
-            gameModel.notifyCellListeners(cell);
-        }
-        if (bomb) {
-            gameModel.notifyLoseListeners(new LoseEvent(getBombPositions(), bombs, rows, cols, getGameType()));
-        }
-        if (getOpenedCellsCount() == getNeedToOpenCellsToWin()) {
-            stopTimer();
-            gameModel.notifyWinListeners(new WinEvent(bombs, rows, cols, getTimerValue(), getGameType()));
         }
     }
 
