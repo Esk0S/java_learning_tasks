@@ -1,53 +1,43 @@
 package ru.cft.focus.miner.view;
 
+import ru.cft.focus.miner.data.GameField;
+import ru.cft.focus.miner.data.GameTimer;
+import ru.cft.focus.miner.data.GameTimerTask;
 import ru.cft.focus.miner.model.*;
 import ru.cft.focus.miner.model.GameType;
-
-import java.util.TimerTask;
-
-import static ru.cft.focus.miner.data.GameValues.*;
 
 public class View implements CellListener, NewGameListener, WinListener, LoseListener, RecordListener {
     private boolean start;
     private final MainWindow mainWindow;
     private final GameModel gameModel;
-    private final TimerTask timerTask;
+    private final GameField gameField;
+    private GameTimer gameTimer;
 
-    public View(GameModel gameModel, MainWindow mainWindow, TimerTask timerTask) {
+    public View(GameModel gameModel, GameField gameField, MainWindow mainWindow) {
         this.gameModel = gameModel;
         this.mainWindow = mainWindow;
-        this.timerTask = timerTask;
+        this.gameField = gameField;
         start = true;
     }
 
     @Override
-    public void onClick(CellEvent cellEvent) {
+    public void onCellAction(CellEvent cellEvent) {
         int x = cellEvent.getX();
         int y = cellEvent.getY();
 
         CellState cellState = cellEvent.getState();
-        ButtonTypeModel buttonType = cellEvent.getButtonType();
-        switch (buttonType) {
-            case LEFT_BUTTON -> {
-                if (start) {
-                    TimerTask copyTask = new TimerTask() {
-                        @Override
-                        public void run() {
-                            timerTask.run();
-                        }
-                    };
-                    startTimer(copyTask);
-                    start = false;
-                }
-                updateCellView(x, y, cellState);
-            }
-            case RIGHT_BUTTON -> updateMarksView(x, y, cellState, cellEvent.getEstimateBombCount());
-            case MIDDLE_BUTTON -> updateCellView(x, y, cellState);
+        ActionType actionType = cellEvent.getButtonType();
+
+        switch (actionType) {
+            case OPEN_CELLS -> openCells(x, y, cellState);
+            case MARK_UNMARK -> markUnmark(x, y, cellState);
+            case OPEN_CELLS_AROUND -> openCellsAround(x, y, cellState);
         }
     }
 
     @Override
     public void onNewGame(NewGameEvent event) {
+        gameModel.startNewGame(event.getBombs(), event.getRows(), event.getCols(), event.getGameType());
         stopTimer();
         start = true;
         mainWindow.createGameField(event.getRows(), event.getCols());
@@ -56,32 +46,39 @@ public class View implements CellListener, NewGameListener, WinListener, LoseLis
     }
 
     @Override
-    public void onWin(WinEvent event) {
-        NewGameEvent newGameEvent = gameModel.startNewGame(event.getBombs(), event.getRows(), event.getCols(), event.getGameType());
-
-        gameModel.notifyRecordListeners(new RecordEvent(event.getGameType(), event.getTime()));
+    public void onWin() {
+        gameTimer.cancel();
+        gameModel.notifyRecordListeners();
+        int bombs = gameField.getBombsCount();
+        int rows = gameField.getRowsCount();
+        int cols = gameField.getColsCount();
+        GameType gameType = gameField.getGameType();
         new WinWindow(mainWindow,
-                e -> gameModel.notifyNewGameListeners(newGameEvent),
+                e -> gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameType)),
                 e -> System.exit(0));
     }
 
     @Override
-    public void onLose(LoseEvent event) {
-        for (var i : event.getBombPositions()) {
+    public void onLose() {
+        stopTimer();
+        var bombPositions = gameField.getBombPositions();
+        int bombs = gameField.getBombsCount();
+        int rows = gameField.getRowsCount();
+        int cols = gameField.getColsCount();
+        GameType gameType = gameField.getGameType();
+        for (var i : bombPositions) {
             mainWindow.setCellImage(i[0], i[1], GameImage.BOMB);
         }
-        NewGameEvent newGameEvent = gameModel.startNewGame(event.getBombs(), event.getRows(),
-                event.getCols(), event.getGameType());
         new LoseWindow(mainWindow,
-                e -> gameModel.notifyNewGameListeners(newGameEvent),
+                e -> gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameType)),
                 e -> System.exit(0));
     }
 
     @Override
-    public void onRecord(RecordEvent event) {
-        int recordValue = gameModel.readRecord(event.getGameType());
-        int currentResult = event.getTime();
-        GameType gameType = event.getGameType();
+    public void onRecord() {
+        int recordValue = gameModel.readRecord(gameField.getGameType());
+        int currentResult = gameTimer.getTimerValue();
+        GameType gameType = gameField.getGameType();
         if (currentResult < recordValue) {
             new RecordsWindow(mainWindow,
                     name -> gameModel.updateRecord(name, currentResult, gameType));
@@ -104,9 +101,50 @@ public class View implements CellListener, NewGameListener, WinListener, LoseLis
         }
     }
 
-    private void updateMarksView(int x, int y, CellState cellState, int estimateBombCount) {
-        mainWindow.setCellImage(x, y, GameImage.valueOf(cellState.name()));
-        mainWindow.setBombsCount(estimateBombCount);
+    private void updateMarksView(int x, int y, CellState cellState) {
+        if (cellState != CellState.NONE) {
+            mainWindow.setCellImage(x, y, GameImage.valueOf(cellState.name()));
+            mainWindow.setBombsCount(gameField.getEstimateBombCount());
+        }
+    }
+
+    private void openCells(int x, int y, CellState cellState) {
+        if (start) {
+            startTimerTask();
+            start = false;
+        }
+        updateCellView(x, y, cellState);
+    }
+
+    private void markUnmark(int x, int y, CellState cellState) {
+        updateMarksView(x, y, cellState);
+    }
+
+    private void openCellsAround(int x, int y, CellState cellState) {
+        updateCellView(x, y, cellState);
+    }
+
+    private void startTimerTask() {
+        startTimer(new GameTimerTask(mainWindow));
+    }
+
+    private void createTimer() {
+        stopTimer();
+        gameTimer = new GameTimer();
+    }
+
+    public void startTimer(GameTimerTask timerTask) {
+        if (gameTimer == null) {
+            createTimer();
+        }
+        gameTimer.setTimer(timerTask);
+    }
+
+    public void stopTimer() {
+        if (gameTimer != null) {
+            gameTimer.cancel();
+            gameTimer = null;
+        }
     }
 
 }

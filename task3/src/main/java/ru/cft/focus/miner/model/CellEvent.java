@@ -7,19 +7,13 @@ public class CellEvent {
     private final CellState state;
     private final int x;
     private final int y;
-    private final ButtonTypeModel buttonType;
-    private int estimateBombCount;
+    private final ActionType buttonType;
 
-    public CellEvent(int x, int y, CellState state, ButtonTypeModel buttonType) {
+    public CellEvent(int x, int y, CellState state, ActionType buttonType) {
         this.x = x;
         this.y = y;
         this.state = state;
         this.buttonType = buttonType;
-    }
-
-    public CellEvent(int x, int y, CellState state, ButtonTypeModel buttonType, int estimateBombCount) {
-        this(x, y, state, buttonType);
-        this.estimateBombCount = estimateBombCount;
     }
 
 }
