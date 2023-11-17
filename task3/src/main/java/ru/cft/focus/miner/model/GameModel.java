@@ -12,9 +12,8 @@ import ru.cft.focus.miner.view.*;
 import java.io.*;
 import java.util.*;
 
-import static ru.cft.focus.miner.model.ActionType.OPEN_CELLS;
 import static ru.cft.focus.miner.model.ActionType.MARK_UNMARK;
-import static ru.cft.focus.miner.model.CellState.*;
+import static ru.cft.focus.miner.model.ActionType.OPEN_CELLS;
 
 @Log4j2
 public class GameModel {
@@ -24,9 +23,10 @@ public class GameModel {
     private final GameField gameField;
     private final List<CellListener> cellListeners;
     private final List<NewGameListener> newGameListeners;
-    private final List<WinListener> winListeners;
-    private final List<LoseListener> loseListeners;
+    private final List<GameWonListener> gameWonListeners;
+    private final List<GameLostListener> gameLostListeners;
     private final List<RecordListener> recordListeners;
+    private final List<HighScoresWindowListener> highScoresWindowListeners;
     private static final int X = 0;
     private static final int Y = 1;
     private static final String JSON_FILE_NAME = "records.json";
@@ -35,9 +35,10 @@ public class GameModel {
         this.gameField = gameFiled;
         this.cellListeners = new ArrayList<>();
         this.newGameListeners = new ArrayList<>();
-        this.winListeners = new ArrayList<>();
-        this.loseListeners = new ArrayList<>();
+        this.gameWonListeners = new ArrayList<>();
+        this.gameLostListeners = new ArrayList<>();
         this.recordListeners = new ArrayList<>();
+        this.highScoresWindowListeners = new ArrayList<>();
         start = true;
         rand = new Random();
     }
@@ -60,21 +61,27 @@ public class GameModel {
         }
     }
 
-    public void notifyWinListeners() {
-        for (WinListener listener : winListeners) {
-            listener.onWin();
+    public void notifyGameWonListeners() {
+        for (GameWonListener listener : gameWonListeners) {
+            listener.onGameWon();
         }
     }
 
-    public void notifyLoseListeners() {
-        for (LoseListener listener : loseListeners) {
-            listener.onLose();
+    public void notifyGameLostListeners() {
+        for (GameLostListener listener : gameLostListeners) {
+            listener.onGameLost();
         }
     }
 
     public void notifyRecordListeners() {
         for (RecordListener listener : recordListeners) {
             listener.onRecord();
+        }
+    }
+
+    public void notifyHighScoresWindowListeners() {
+        for (HighScoresWindowListener listener : highScoresWindowListeners) {
+            listener.updateHighScoresWindow();
         }
     }
 
@@ -90,34 +97,8 @@ public class GameModel {
                 bombPosY = rand.nextInt(rowsCount);
             } while (gameField.checkBombOnField(bombPosX, bombPosY) || (bombPosX == currentPosX && bombPosY == currentPosY));
             gameField.setBombOnField(bombPosX, bombPosY);
-            gameField.addBombPosition(bombPosX, bombPosY);
+            log.debug("Bomb on " + bombPosX + " " + bombPosY);
 //            mainWindow.setCellImage(bombPosX, bombPosY, GameImage.BOMB); // cheat
-        }
-    }
-
-    private void setCellStates() {
-        for (int x = 0; x < gameField.getColsCount(); x++) {
-            for (int y = 0; y < gameField.getRowsCount(); y++) {
-                CellState cellState;
-                if (gameField.checkBombOnField(x, y)) {
-                    cellState = BOMB;
-                } else {
-                    int bombCount = checkCellsForBombs(getNeighboringCellIndices(x, y));
-                    cellState = switch (bombCount) {
-                        case 1 -> NUM_1;
-                        case 2 -> NUM_2;
-                        case 3 -> NUM_3;
-                        case 4 -> NUM_4;
-                        case 5 -> NUM_5;
-                        case 6 -> NUM_6;
-                        case 7 -> NUM_7;
-                        case 8 -> NUM_8;
-
-                        default -> EMPTY;
-                    };
-                }
-                gameField.setCellState(x, y, cellState);
-            }
         }
     }
 
@@ -144,20 +125,26 @@ public class GameModel {
     }
 
     public void addWinListener(View listener) {
-        if (!winListeners.contains(listener)) {
-            winListeners.add(listener);
+        if (!gameWonListeners.contains(listener)) {
+            gameWonListeners.add(listener);
         }
     }
 
     public void addLoseListener(View listener) {
-        if (!loseListeners.contains(listener)) {
-            loseListeners.add(listener);
+        if (!gameLostListeners.contains(listener)) {
+            gameLostListeners.add(listener);
         }
     }
 
     public void addRecordListener(View listener) {
         if (!recordListeners.contains(listener)) {
             recordListeners.add(listener);
+        }
+    }
+
+    public void addHighRecordListener(View listener) {
+        if (!highScoresWindowListeners.contains(listener)) {
+            highScoresWindowListeners.add(listener);
         }
     }
 
@@ -172,13 +159,13 @@ public class GameModel {
 
     private void createRecords() {
         JsonObject noviceObject = new JsonObject();
-        noviceObject.addProperty("None", 999);
+        noviceObject.addProperty("Unknown", 999);
 
         JsonObject mediumObject = new JsonObject();
-        mediumObject.addProperty("None", 999);
+        mediumObject.addProperty("Unknown", 999);
 
         JsonObject expertObject = new JsonObject();
-        expertObject.addProperty("None", 999);
+        expertObject.addProperty("Unknown", 999);
 
         JsonObject mainObject = new JsonObject();
         mainObject.add("NOVICE", noviceObject);
@@ -192,22 +179,13 @@ public class GameModel {
         }
     }
 
-    public int getRecord(GameType gameType) {
-        int recValue = -1;
-        try (JsonReader reader = new JsonReader(new FileReader(JSON_FILE_NAME))) {
-            json = JsonParser.parseReader(reader).getAsJsonObject();
-            JsonObject jsonRecordHolder = json.getAsJsonObject(gameType.name());
-            for (var i : jsonRecordHolder.asMap().entrySet()) {
-                recValue = i.getValue().getAsInt();
-            }
-        } catch (IOException e) {
-            log.warn(e.getMessage());
-        }
+    private int getRecord(GameType gameType) {
+        Map<String, Map<String, Integer>> records = parseRecordsFromFile();
 
-        return recValue;
+        return records.get(gameType.name()).values().iterator().next();
     }
 
-    public void updateRecord(String name, int recordValue, GameType gameType) {
+    public void updateHighScoresFile(String name, int recordValue, GameType gameType) {
         String oldName = null;
         JsonObject jsonRecordHolder = json.getAsJsonObject(gameType.name());
         for (var i : jsonRecordHolder.asMap().entrySet()) {
@@ -224,57 +202,75 @@ public class GameModel {
         }
     }
 
-    public void openCells(int x, int y, boolean cellsAround) {
-        boolean bomb = false;
-        List<CellEvent> cells;
-        if (cellsAround) {
-            cells = getCellsAround(x, y);
-        } else {
-            cells = generateOpenedCells(x, y);
+    public Map<String, Map<String, Integer>> parseRecordsFromFile() {
+        Map<String, Map<String, Integer>> records = new HashMap<>();
+        try (JsonReader reader = new JsonReader(new FileReader(JSON_FILE_NAME))) {
+            json = JsonParser.parseReader(reader).getAsJsonObject();
+
+            for (var gameTypeJson : json.entrySet()) {
+                String gameType = gameTypeJson.getKey();
+                Map<String, Integer> innerMap = new HashMap<>();
+                for (var nameJson : gameTypeJson.getValue().getAsJsonObject().entrySet()) {
+                    String name = nameJson.getKey();
+                    int result = nameJson.getValue().getAsInt();
+                    innerMap.put(name, result);
+                }
+                records.put(gameType, innerMap);
+            }
+        } catch (IOException e) {
+            log.warn(e.getMessage());
         }
-        for (var cell : cells) {
-            if (cell.getState() == CellState.BOMB) {
+
+        return records;
+    }
+
+    private void checkForWonLost(List<CellEvent> cells) {
+        boolean bomb = false;
+        for (var cellEvent : cells) {
+            if (cellEvent.getCell().hasBomb()) {
                 bomb = true;
             }
-            notifyCellListeners(cell);
+            notifyCellListeners(cellEvent);
         }
         if (bomb) {
-            notifyLoseListeners();
+            notifyGameLostListeners();
         }
         if (gameField.getOpenedCellsCount() == gameField.getNeedToOpenCellsToWin()) {
-            notifyWinListeners();
+            notifyGameWonListeners();
         }
     }
 
-    public List<CellEvent> generateOpenedCells(int x, int y) {
-        if (gameField.isMarked(x, y)) {
-            return List.of();
-        }
-
-        return generateCells(x, y);
+    public void openCells(int x, int y) {
+        List<CellEvent> cells = generateOpenedCells(x, y);
+        checkForWonLost(cells);
     }
 
-    private List<CellEvent> generateCells(int x, int y) {
-        if (gameField.isMarked(x, y)) {
+    public void openCellsAround(int x, int y) {
+        List<CellEvent> cells = generateCellsAround(x, y);
+        checkForWonLost(cells);
+    }
+
+    private List<CellEvent> generateOpenedCells(int x, int y) {
+        Cell cell = gameField.getCell(x, y);
+        if (cell.isMarked()) {
             return List.of();
         }
         List<CellEvent> cells = new ArrayList<>();
         if (start) {
             setBombs(x, y);
-            setCellStates();
+            generateNumberOfBombsAroundCells();
             start = false;
         }
 
-        if (gameField.isMarked(x, y)) {
-            gameField.markCell(x, y, false);
+        if (cell.isMarked()) {
+            cell.setMarked(false);
         }
-        CellState cellState = gameField.getCellState(x, y);
-        if (cellState == EMPTY) {
+        if (cell.isEmpty()) {
             openEmptyCells(x, y, cells);
         } else {
-            cells.add(new CellEvent(x, y, cellState, OPEN_CELLS));
             gameField.incOpenedCellsCountIfNotOpened(x, y);
-            gameField.setCellOpened(x, y);
+            cell.setOpened();
+            cells.add(new CellEvent(x, y, cell, OPEN_CELLS));
         }
         log.debug("Number of open cells: " + gameField.getOpenedCellsCount());
 
@@ -282,26 +278,44 @@ public class GameModel {
     }
 
     private void openEmptyCells(int x, int y, List<CellEvent> cells) {
+        Cell cell = gameField.getCell(x, y);
         gameField.incOpenedCellsCountIfNotOpened(x, y);
         log.debug("Number of open cells: " + gameField.getOpenedCellsCount());
-        gameField.setCellOpened(x, y);
-        cells.add(new CellEvent(x, y, EMPTY, OPEN_CELLS));
-
-        if (gameField.isMarked(x, y)) {
-            gameField.markCell(x, y, false);
-        }
-        CellState cellState = gameField.getCellState(x, y);
-        if (cellState != EMPTY && cellState != BOMB) {
-            cells.add(new CellEvent(x, y, cellState, OPEN_CELLS));
+        cell.setOpened();
+        if (cell.isMarked()) {
+            cell.setMarked(false);
         }
 
+        cells.add(new CellEvent(x, y, cell, OPEN_CELLS));
 
+        if (cell.getBombsAround() > 0) {
+            cells.add(new CellEvent(x, y, cell, OPEN_CELLS));
+        }
 
-        if (cellState == EMPTY) {
+        if (cell.isEmpty()) {
             for (var coords : getNeighboringCellIndices(x, y)) {
-                if (!gameField.isCellOpened(coords[X], coords[Y]) && !gameField.isMarked(coords[X], coords[Y])) {
+                var neighbor = gameField.getCell(coords[X], coords[Y]);
+                if (!neighbor.isOpened() && !neighbor.isMarked()) {
                     openEmptyCells(coords[X], coords[Y], cells);
                 }
+            }
+        }
+    }
+
+    private void generateNumberOfBombsAroundCells() {
+        for (int x = 0; x < gameField.getColsCount(); x++) {
+            for (int y = 0; y < gameField.getRowsCount(); y++) {
+                int bombsAround = 0;
+                for (var neighbor : getNeighboringCellIndices(x, y)) {
+                    int neighborX = neighbor[X];
+                    int neighborY = neighbor[Y];
+                    Cell cell = gameField.getCell(neighborX, neighborY);
+                    if (cell.hasBomb()) {
+                        bombsAround++;
+                    }
+                }
+                Cell currentCell = gameField.getCell(x, y);
+                currentCell.setBombsAround(bombsAround);
             }
         }
     }
@@ -359,31 +373,27 @@ public class GameModel {
         return cellIndices;
     }
 
-    public CellEvent getCellForMark(int x, int y) {
-        CellState cellState = getCellStateForMark(x, y);
-        if (cellState == CellState.CLOSED) {
+    public void markCell(int x, int y) {
+        Cell cell = gameField.getCell(x, y);
+
+        if (cell.isOpened()) {
+            return;
+        }
+
+        if (cell.isMarked()) {
+            cell.setMarked(false);
             gameField.decreaseMarkCount();
-        } else if (cellState == CellState.MARKED) {
+        } else if (gameField.getMarkCount() < gameField.getBombsCount()) {
+            cell.setMarked(true);
             gameField.incMarkCount();
         }
-        return new CellEvent(x, y, cellState, MARK_UNMARK);
+
+        notifyCellListeners(new CellEvent(x, y, cell, MARK_UNMARK));
     }
 
-    private CellState getCellStateForMark(int x, int y) {
-        if (!gameField.isCellOpened(x, y)) {
-            if (gameField.isMarked(x, y)) {
-                gameField.markCell(x, y, false);
-                return CLOSED;
-            } else if (gameField.getMarkCount() < gameField.getBombsCount()) {
-                gameField.markCell(x, y, true);
-                return MARKED;
-            }
-        }
-        return NONE;
-    }
-
-    public List<CellEvent> getCellsAround(int x, int y) {
-        if (!gameField.isCellOpened(x, y)) {
+    public List<CellEvent> generateCellsAround(int x, int y) {
+        Cell cell = gameField.getCell(x, y);
+        if (!cell.isOpened()) {
             return List.of();
         }
         List<CellEvent> cellEvents = new ArrayList<>();
@@ -392,7 +402,8 @@ public class GameModel {
         int bombsAround = checkCellsForBombs(neighboringCellIndices);
         int bombCount = 0;
         for (var coords : neighboringCellIndices) {
-            if (gameField.isMarked(coords[X], coords[Y])) {
+            var neighbor = gameField.getCell(coords[X], coords[Y]);
+            if (neighbor.isMarked()) {
                 bombCount++;
             }
         }
@@ -400,7 +411,8 @@ public class GameModel {
             return List.of();
         }
         for (var coords : neighboringCellIndices) {
-            if (!gameField.isCellOpened(coords[X], coords[Y]) && !gameField.isMarked(coords[X], coords[Y])) {
+            var neighbor = gameField.getCell(coords[X], coords[Y]);
+            if (!neighbor.isOpened() && !neighbor.isMarked()) {
                 cellEvents.addAll(generateOpenedCells(coords[X], coords[Y]));
             }
         }
