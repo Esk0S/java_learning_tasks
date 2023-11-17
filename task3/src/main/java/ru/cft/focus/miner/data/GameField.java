@@ -67,10 +67,6 @@ public class GameField {
         return cell[x][y];
     }
 
-    public void setCellOpened(int x, int y) {
-        cell[x][y].setOpened();
-    }
-
     public boolean isCellOpened(int x, int y) {
         return cell[x][y].isOpened();
     }
