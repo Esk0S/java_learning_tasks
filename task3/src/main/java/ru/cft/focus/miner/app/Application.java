@@ -13,18 +13,18 @@ public class Application {
         MainWindow mainWindow = new MainWindow();
         SettingsWindow settingsWindow = new SettingsWindow(mainWindow);
         HighScoresWindow highScoresWindow = new HighScoresWindow(mainWindow);
-        GameField gameFiled = new GameField();
-        GameModel gameModel = new GameModel(gameFiled);
+        GameField gameField = new GameField();
+        GameModel gameModel = new GameModel(gameField);
 
-        View view = new View(gameModel, gameFiled, mainWindow);
+        View view = new View(gameModel, gameField, mainWindow, highScoresWindow);
 
-        GameController gameController = new GameController(mainWindow, settingsWindow, gameModel, view);
+        GameController gameController = new GameController(mainWindow, settingsWindow, gameModel);
 
         gameController.startNewGame(10, 10, 10, GameType.NOVICE);
 
         mainWindow.setNewGameMenuAction(e ->
-                gameController.startNewGame(gameFiled.getBombsCount(), gameFiled.getRowsCount(),
-                        gameFiled.getColsCount(), gameFiled.getGameType()));
+                gameController.startNewGame(gameField.getBombsCount(), gameField.getRowsCount(),
+                        gameField.getColsCount(), gameField.getGameType()));
 
         mainWindow.setSettingsMenuAction(e -> settingsWindow.setVisible(true));
         mainWindow.setHighScoresMenuAction(e -> highScoresWindow.setVisible(true));

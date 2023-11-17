@@ -2,14 +2,18 @@ package ru.cft.focus.miner.model;
 
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
-public class WinEvent {
+public class GameLostEvent {
+    private final List<int[]> bombPositions;
     private final int bombs;
     private final int rows;
     private final int cols;
     private final GameType gameType;
 
-    public WinEvent(int bombs, int rows, int cols, GameType gameType) {
+    public GameLostEvent(List<int[]> bombPositions, int bombs, int rows, int cols, GameType gameType) {
+        this.bombPositions = bombPositions;
         this.bombs = bombs;
         this.rows = rows;
         this.cols = cols;

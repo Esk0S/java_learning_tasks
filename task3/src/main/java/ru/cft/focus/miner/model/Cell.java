@@ -6,10 +6,9 @@ public class Cell {
     private boolean bomb;
     @Getter
     private boolean marked;
-
-    private CellState cellState = CellState.EMPTY;
     @Getter
     private boolean opened;
+    private int bombsAround;
 
     public boolean hasBomb() {
         return bomb;
@@ -23,15 +22,19 @@ public class Cell {
         this.marked = marked;
     }
 
-    public void setCellState(CellState cellState) {
-        this.cellState = cellState;
-    }
-
     public void setOpened() {
         opened = true;
     }
 
-    public CellState getCellState() {
-        return cellState;
+    public int getBombsAround() {
+        return bombsAround;
+    }
+
+    public void setBombsAround(int bombsAround) {
+        this.bombsAround = bombsAround;
+    }
+
+    public boolean isEmpty() {
+        return !hasBomb() && getBombsAround() == 0 && !isMarked();
     }
 }

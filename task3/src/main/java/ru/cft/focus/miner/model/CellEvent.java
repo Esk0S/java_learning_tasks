@@ -4,15 +4,15 @@ import lombok.Getter;
 
 @Getter
 public class CellEvent {
-    private final CellState state;
+    private final Cell cell;
     private final int x;
     private final int y;
     private final ActionType buttonType;
 
-    public CellEvent(int x, int y, CellState state, ActionType buttonType) {
+    public CellEvent(int x, int y, Cell cell, ActionType buttonType) {
         this.x = x;
         this.y = y;
-        this.state = state;
+        this.cell = cell;
         this.buttonType = buttonType;
     }
 
