@@ -24,15 +24,15 @@ public class Main {
         }
 
         AtomicReference<Double> counter = new AtomicReference<>(0.0);
-        for (int threadID = 0; threadID < numThreads; threadID++) {
+        for (var thread : task) {
             try {
-                task[threadID].join();
+                thread.join();
             } catch (InterruptedException e) {
                 log.error(e.getMessage());
                 Thread.currentThread().interrupt();
             }
-            int i = threadID;
-            counter.updateAndGet(result -> result + task[i].getResult());
+
+            counter.updateAndGet(result -> result + thread.getResult());
         }
 
         log.info(() -> "result: " + counter.get());
