@@ -9,7 +9,7 @@ public class Circle extends Shape {
     private static final String NAME_OF_SHAPE = "Circle";
     public static final String NUM_OF_PARAMS_EXCEPTION = "The number of arguments must be one";
 
-    public Circle(double[] params) throws NumberOfParametersException {
+    public Circle(final double[] params) throws NumberOfParametersException {
         if (params.length != 1) {
             throw new NumberOfParametersException(NUM_OF_PARAMS_EXCEPTION);
         } else {
