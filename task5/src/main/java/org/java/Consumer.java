@@ -7,10 +7,11 @@ public class Consumer extends Thread {
     private final Storage storage;
     private final int timeout;
     private final int id;
+    private static final int SECOND = 1000;
 
     public Consumer(Storage storage, int timeout, int id) {
         this.storage = storage;
-        this.timeout = timeout * 1000;
+        this.timeout = timeout * SECOND;
         this.id = id;
     }
 
