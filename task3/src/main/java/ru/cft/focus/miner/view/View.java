@@ -1,5 +1,6 @@
 package ru.cft.focus.miner.view;
 
+import ru.cft.focus.miner.controller.GameController;
 import ru.cft.focus.miner.data.GameField;
 import ru.cft.focus.miner.data.GameTimer;
 import ru.cft.focus.miner.data.GameTimerTask;
@@ -13,6 +14,7 @@ public class View implements CellListener, NewGameListener, GameWonListener, Gam
     private final MainWindow mainWindow;
     private final GameModel gameModel;
     private final GameField gameField;
+    private final GameController gameController;
     private final HighScoresWindow highScoresWindow;
     private GameTimer gameTimer;
     static GameImage[] openCellImages = {
@@ -27,11 +29,12 @@ public class View implements CellListener, NewGameListener, GameWonListener, Gam
             GameImage.NUM_8,
     };
 
-    public View(GameModel gameModel, GameField gameField, MainWindow mainWindow, HighScoresWindow highScoresWindow) {
+    public View(GameModel gameModel, GameField gameField, MainWindow mainWindow, HighScoresWindow highScoresWindow, GameController gameController) {
         this.gameModel = gameModel;
         this.mainWindow = mainWindow;
         this.gameField = gameField;
         this.highScoresWindow = highScoresWindow;
+        this.gameController = gameController;
         start = true;
 
         gameModel.addHighRecordListener(this);
@@ -74,7 +77,8 @@ public class View implements CellListener, NewGameListener, GameWonListener, Gam
         int rows = gameField.getRowsCount();
         int cols = gameField.getColsCount();
         new WinWindow(mainWindow,
-                e -> gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameField.getGameType())),
+                e -> gameController.startNewGame(bombs, rows, cols, gameField.getGameType()),
+//                        gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameField.getGameType())),
                 e -> System.exit(0));
     }
 
@@ -97,7 +101,8 @@ public class View implements CellListener, NewGameListener, GameWonListener, Gam
             mainWindow.setCellImage(i[0], i[1], GameImage.BOMB);
         }
         new LoseWindow(mainWindow,
-                e -> gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameField.getGameType())),
+                e -> gameController.startNewGame(bombs, rows, cols, gameField.getGameType()),
+//                        gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameField.getGameType())),
                 e -> System.exit(0));
     }
 
