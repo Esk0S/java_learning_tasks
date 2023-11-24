@@ -4,18 +4,20 @@ import ru.cft.focus.miner.controller.GameController;
 import ru.cft.focus.miner.data.GameField;
 import ru.cft.focus.miner.data.GameTimer;
 import ru.cft.focus.miner.data.GameTimerTask;
+import ru.cft.focus.miner.data.Records;
 import ru.cft.focus.miner.model.*;
+import ru.cft.focus.miner.model.GameType;
 
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
 
-public class View implements CellListener, NewGameListener, GameWonListener, GameLostListener, RecordListener, HighScoresWindowListener {
+public class View implements CellListener, NewGameListener, GameWonListener, GameLostListener {
     private boolean start;
     private final MainWindow mainWindow;
-    private final GameModel gameModel;
     private final GameField gameField;
     private final GameController gameController;
     private final HighScoresWindow highScoresWindow;
+    private final Records records;
     private GameTimer gameTimer;
     static GameImage[] openCellImages = {
             GameImage.EMPTY,
@@ -30,19 +32,19 @@ public class View implements CellListener, NewGameListener, GameWonListener, Gam
     };
 
     public View(GameModel gameModel, GameField gameField, MainWindow mainWindow, HighScoresWindow highScoresWindow, GameController gameController) {
-        this.gameModel = gameModel;
         this.mainWindow = mainWindow;
         this.gameField = gameField;
         this.highScoresWindow = highScoresWindow;
         this.gameController = gameController;
         start = true;
 
-        gameModel.addHighRecordListener(this);
         gameModel.addCellListener(this);
         gameModel.addNewGameListener(this);
         gameModel.addWinListener(this);
         gameModel.addLoseListener(this);
-        gameModel.addRecordListener(this);
+
+        records = new Records();
+        updateHighScoresWindow();
     }
 
     @Override
@@ -72,13 +74,19 @@ public class View implements CellListener, NewGameListener, GameWonListener, Gam
     @Override
     public void onGameWon() {
         gameTimer.cancel();
-        gameModel.notifyRecordListeners();
+
+        int recordValue = records.readRecord(gameField.getGameType());
+        int currentResult = gameTimer.getTimerValue();
+        if (currentResult < recordValue) {
+            new RecordsWindow(mainWindow,
+                    name -> records.registerScore(gameField.getGameType(), name, currentResult));
+            updateHighScoresWindow();
+        }
         int bombs = gameField.getBombsCount();
         int rows = gameField.getRowsCount();
         int cols = gameField.getColsCount();
         new WinWindow(mainWindow,
                 e -> gameController.startNewGame(bombs, rows, cols, gameField.getGameType()),
-//                        gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameField.getGameType())),
                 e -> System.exit(0));
     }
 
@@ -102,32 +110,19 @@ public class View implements CellListener, NewGameListener, GameWonListener, Gam
         }
         new LoseWindow(mainWindow,
                 e -> gameController.startNewGame(bombs, rows, cols, gameField.getGameType()),
-//                        gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameField.getGameType())),
                 e -> System.exit(0));
     }
 
-    @Override
-    public void onRecord() {
-        int recordValue = gameModel.readRecord(gameField.getGameType());
-        int currentResult = gameTimer.getTimerValue();
-        if (currentResult < recordValue) {
-            new RecordsWindow(mainWindow,
-                    name -> gameModel.updateHighScoresFile(name, currentResult, gameField.getGameType()));
-            gameModel.notifyHighScoresWindowListeners();
-        }
-    }
-
-    @Override
     public void updateHighScoresWindow() {
-        Map<String, Map<String, Integer>> records = gameModel.parseRecordsFromFile();
-        for (var gameType : records.entrySet()) {
-            for (var recordEntry : gameType.getValue().entrySet()) {
-                String playerName = recordEntry.getKey();
-                int playerRecord = recordEntry.getValue();
-                switch (GameType.valueOf(gameType.getKey())) {
-                    case NOVICE -> highScoresWindow.setNoviceRecord(playerName, playerRecord);
-                    case MEDIUM -> highScoresWindow.setMediumRecord(playerName, playerRecord);
-                    case EXPERT -> highScoresWindow.setExpertRecord(playerName, playerRecord);
+        var recordsMap = records.getRecordsMap();
+        for (var entry : recordsMap.entrySet()) {
+            GameType gameType = entry.getKey();
+            List<Records.Entry> typeRecords = entry.getValue();
+            for (var results : typeRecords) {
+                switch (gameType) {
+                    case NOVICE -> highScoresWindow.setNoviceRecord(results.name(), results.time());
+                    case MEDIUM -> highScoresWindow.setMediumRecord(results.name(), results.time());
+                    case EXPERT -> highScoresWindow.setExpertRecord(results.name(), results.time());
                 }
             }
         }

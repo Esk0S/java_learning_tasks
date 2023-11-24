@@ -16,7 +16,6 @@ public class Application {
         GameField gameField = new GameField();
         GameModel gameModel = new GameModel(gameField);
 
-
         GameController gameController = new GameController(mainWindow, settingsWindow, gameModel);
 
         View view = new View(gameModel, gameField, mainWindow, highScoresWindow, gameController);

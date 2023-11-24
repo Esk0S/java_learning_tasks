@@ -10,14 +10,12 @@ public class GameController implements GameTypeListener, CellEventListener {
     public GameController(MainWindow mainWindow, SettingsWindow settingsWindow, GameModel gameModel) {
         this.gameModel = gameModel;
 
-        gameModel.notifyHighScoresWindowListeners();
         settingsWindow.setGameTypeListener(this);
         mainWindow.setCellListener(this);
     }
 
     public void startNewGame(int bombs, int rows, int cols, GameType gameType) {
         gameModel.startNewGame(bombs, rows, cols, gameType);
-        gameModel.notifyNewGameListeners(new NewGameEvent(bombs, rows, cols, gameType));
     }
 
     @Override
