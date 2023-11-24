@@ -20,6 +20,7 @@ public class Main {
     private static final String PRODUCER_TIME = "producerTime";
     private static final String CONSUMER_COUNT = "consumerCount";
     private static final String CONSUMER_TIME = "consumerTime";
+    private static final String ERROR_PROPERTY = "must be greater than 0";
 
     public static void main(String[] args) {
         parseProperties();
@@ -62,18 +63,10 @@ public class Main {
             consumerCount = Integer.parseInt(properties.getProperty(key));
             key = CONSUMER_TIME;
             consumerTime = Integer.parseInt(properties.getProperty(key));
-            if (storageSize < 1) {
-                log.error("storageSize must be greater than 0");
-                System.exit(0);
-            }
-            if (producerCount < 1) {
-                log.error("producerCount must be greater than 0");
-                System.exit(0);
-            }
-            if (consumerCount < 1) {
-                log.error("consumerCount must be greater than 0");
-                System.exit(0);
-            }
+
+            validateValue(storageSize, STORAGE_SIZE);
+            validateValue(producerCount, PRODUCER_COUNT);
+            validateValue(consumerCount, CONSUMER_COUNT);
         } catch (IOException e) {
             log.error("", e);
             System.exit(0);
@@ -84,5 +77,12 @@ public class Main {
         }
         log.info(() -> "Storage size: " + storageSize + ", producers: " + producerCount + ", consumers: " + consumerCount);
         log.info(() -> "Producer time: " + producerTime + ", consumer time: " + consumerTime + " seconds");
+    }
+
+    private static void validateValue(int value, String errorMessage) {
+        if (value < 1) {
+            log.error(errorMessage + " " + ERROR_PROPERTY);
+            System.exit(0);
+        }
     }
 }

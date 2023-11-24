@@ -9,11 +9,11 @@ public class Producer extends Thread {
     private final int id;
     private static int productNumber = 0;
     private static final Object o = new Object();
-    private static final int SECOND = 1000;
+    private static final int SECOND_IN_MS = 1000;
 
     public Producer(Storage storage, int timeout, int id) {
         this.storage = storage;
-        this.timeout = timeout * SECOND;
+        this.timeout = timeout * SECOND_IN_MS;
         this.id = id;
     }
 
