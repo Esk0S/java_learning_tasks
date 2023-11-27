@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.cft.focus'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.projectlombok:lombok:1.18.30'
+    implementation 'org.apache.logging.log4j:log4j-core:3.0.0-alpha1'
+    implementation 'org.apache.logging.log4j:log4j-api:3.0.0-alpha1'
+}
+
+test {
+    useJUnitPlatform()
+}

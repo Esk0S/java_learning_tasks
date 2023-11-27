@@ -1,6 +1,7 @@
 rootProject.name = "perepelitsin_2023_3"
 include 'task1'
 include 'task2'
+include 'task5'
 include 'task6'
 include 'task6:server'
 findProject(':task6:server')?.name = 'server'
@@ -8,4 +9,3 @@ include 'task6:client'
 findProject(':task6:client')?.name = 'client'
 include 'task6:common'
 findProject(':task6:common')?.name = 'common'
-
