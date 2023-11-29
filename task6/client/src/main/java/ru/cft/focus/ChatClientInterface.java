@@ -18,6 +18,7 @@ public class ChatClientInterface implements ConnectionListener {
     private JList<String> participantsList;
     private JPanel connectionPanel;
     private Client client;
+    private static final String SERV_NOT_RESPONDING_ERR = "The server is not responding";
     private static final org.apache.logging.log4j.Logger log
             = org.apache.logging.log4j.LogManager.getLogger(ChatClientInterface.class);
 
@@ -29,6 +30,7 @@ public class ChatClientInterface implements ConnectionListener {
 
         messagePanel = new JTextArea();
         messagePanel.setEditable(false);
+        messagePanel.setLineWrap(true);
 
         JScrollPane messageScrollPane = new JScrollPane(messagePanel);
         frame.add(messageScrollPane, BorderLayout.CENTER);
@@ -104,7 +106,13 @@ public class ChatClientInterface implements ConnectionListener {
         client.addErrorListener(new ErrorListener() {
             @Override
             public void onError(String error) {
-                showError(error);
+                handleError(error);
+            }
+        });
+        client.addInfoListener(new InfoListener() {
+            @Override
+            public void onInfo(String info) {
+                showInfo(info);
             }
         });
         client.addConnectionListener(this);
@@ -138,6 +146,20 @@ public class ChatClientInterface implements ConnectionListener {
         inputField.setText("");
     }
 
+    private void handleError(String err) {
+        if (err.equals(SERV_NOT_RESPONDING_ERR)) {
+            disconnectUser();
+        }
+        showError(err);
+    }
+
+    private void disconnectUser() {
+        connectionPanel.setVisible(true);
+        updateParticipantsList(List.of());
+        frame.revalidate();
+        frame.repaint();
+    }
+
     private void addMessage(String message) {
         messagePanel.append(message + "\n");
     }
@@ -152,6 +174,10 @@ public class ChatClientInterface implements ConnectionListener {
 
     public void showError(String errorMessage) {
         JOptionPane.showMessageDialog(null, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void showInfo(String infoMessage) {
+        JOptionPane.showMessageDialog(null, infoMessage, "Info", JOptionPane.INFORMATION_MESSAGE);
     }
 
 }

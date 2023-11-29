@@ -11,33 +11,39 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 public class Client {
-    private int port;
     private boolean connected;
     private Socket socket;
     private BufferedReader input;
     private PrintWriter output;
+    private String host;
+    private int port;
     private final String address;
     private final String username;
     private final List<ParticipantsListener> participantsListeners;
     private final List<ErrorListener> errorListeners;
     private final List<ConnectionListener> connectionListeners;
     private final List<MessageListener> messageListeners;
+    private final List<InfoListener> infoListeners;
     private static final String USER_LOGGED_IN = "User with this name is already logged in";
+    private static final String CANNON_CONNECT_TO_SERVER_ERR = "Cannot connect to server";
+    private static final String CONNECTION_ERR = "Connection error";
+    private static final String SERV_NOT_RESPONDING_ERR = "The server is not responding";
+    private static final String INVALID_PORT_ERR = "Invalid port";
+    private static final String INVALID_ADDRESS_ERR = "Invalid address";
     private static final org.apache.logging.log4j.Logger log
             = org.apache.logging.log4j.LogManager.getLogger(Client.class);
 
     public Client(String username, String address) {
         this.address = address;
         this.username = username;
-        parsePortFromFile();
 
         participantsListeners = new ArrayList<>();
         errorListeners = new ArrayList<>();
         connectionListeners = new ArrayList<>();
         messageListeners = new ArrayList<>();
+        infoListeners = new ArrayList<>();
     }
 
     public void sendMessageToServer(String messageText) throws ClientNotConnectedException {
@@ -51,25 +57,31 @@ public class Client {
         output.println(messageJson);
     }
 
-    private void parsePortFromFile() {
-        ClassLoader loader = ClassLoader.getSystemClassLoader();
-        try (InputStream stream = loader.getResourceAsStream("server.properties")) {
-            Properties properties = new Properties();
-            properties.load(stream);
-            port = Integer.parseInt(properties.getProperty("port"));
-        } catch (IOException e) {
-            log.error("", e);
-        } catch (NumberFormatException e) {
-            log.error("Invalid port", e);
+    private boolean tryParseAddress() {
+        String[] hostPort = address.split(":");
+        if (hostPort.length != 2) {
+            log.warn(INVALID_ADDRESS_ERR);
+            notifyInfoListeners(INVALID_ADDRESS_ERR);
+            return false;
         }
+        try {
+            port = Integer.parseInt(hostPort[1]);
+        } catch (NumberFormatException e) {
+            log.warn(INVALID_PORT_ERR, e);
+            notifyInfoListeners(INVALID_PORT_ERR);
+            return false;
+        }
+        host = hostPort[0];
+
+        return true;
     }
 
     public void connectToServer() {
-        if (connected) {
+        if (connected || !tryParseAddress()) {
             return;
         }
         try {
-            socket = new Socket(address, port);
+            socket = new Socket(host, port);
             input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             output = new PrintWriter(socket.getOutputStream(), true);
 
@@ -80,10 +92,13 @@ public class Client {
 
             startReadingMessages();
         } catch (ConnectException e) {
-            log.warn("Cannot connect to server", e);
+            notifyErrorListeners(CANNON_CONNECT_TO_SERVER_ERR);
+            log.error(CANNON_CONNECT_TO_SERVER_ERR, e);
+
         } catch (IOException e) {
             connected = false;
-            log.warn("Connection error", e);
+            notifyErrorListeners(CONNECTION_ERR);
+            log.error(CONNECTION_ERR, e);
         }
     }
 
@@ -127,7 +142,7 @@ public class Client {
                             if (json.content().equals(USER_LOGGED_IN)) {
                                 serverResponseString = USER_LOGGED_IN;
                                 continueLoop = false;
-                                notifyErrorListeners(USER_LOGGED_IN);
+                                notifyInfoListeners(USER_LOGGED_IN);
                             }
                         }
                     }
@@ -136,7 +151,8 @@ public class Client {
                     log.info(() -> "Message from server: " + finalServerResponseString);
                 }
             } catch (IOException e) {
-                log.warn("Error while reading messages", e);
+                notifyErrorListeners(SERV_NOT_RESPONDING_ERR);
+                log.error(SERV_NOT_RESPONDING_ERR, e);
             } finally {
                 closeConnection();
             }
@@ -156,7 +172,7 @@ public class Client {
                 log.debug("Socket closed");
             }
         } catch (IOException e) {
-            log.warn("Error while closing connection", e);
+            log.error("Error while closing connection", e);
         }
         connected = false;
     }
@@ -185,6 +201,12 @@ public class Client {
         }
     }
 
+    public void addInfoListener(InfoListener listener) {
+        if (!infoListeners.contains(listener)) {
+            infoListeners.add(listener);
+        }
+    }
+
     private void notifyParticipantsListeners(List<String> participants) {
         for (var listener : participantsListeners) {
             listener.updateParticipants(participants);
@@ -206,6 +228,12 @@ public class Client {
     private void notifyMessageListeners(String message) {
         for (var listener : messageListeners) {
             listener.onReceivedMessage(message);
+        }
+    }
+
+    private void notifyInfoListeners(String message) {
+        for (var listener : infoListeners) {
+            listener.onInfo(message);
         }
     }
 
