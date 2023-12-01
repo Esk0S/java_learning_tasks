@@ -39,7 +39,17 @@ public class Circle extends Shape {
         return radius;
     }
 
-    public double gerDiameter() {
+    public double getDiameter() {
         return diameter;
+    }
+
+    @Override
+    public String printShape() {
+        return printCommon() +
+                String.format("""
+                                Radius: %.2f mm
+                                Diameter: %.2f mm
+                                """,
+                        getRadius(), getDiameter());
     }
 }

@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.cft.focus'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes(
+                'Manifest-Version': '1.0',
+                'Main-Class': 'ru.cft.focus.Server'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = 'EXCLUDE'
+}
+
+dependencies {
+    implementation project(':task6:common')
+    implementation 'org.projectlombok:lombok:1.18.30'
+    implementation 'org.apache.logging.log4j:log4j-core:3.0.0-alpha1'
+    implementation 'org.apache.logging.log4j:log4j-api:3.0.0-alpha1'
+    implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+test {
+    useJUnitPlatform()
+}

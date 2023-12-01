@@ -20,7 +20,7 @@ class TestCircle {
     void getDiameter() throws NumberOfParametersException {
         Circle circle = new Circle(new double[]{3});
         double expected = 6;
-        double actual = circle.gerDiameter();
+        double actual = circle.getDiameter();
         assertEquals(expected, actual);
     }
 
